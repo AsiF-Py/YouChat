@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+  <!--
+// v0 by Vercel.
+// https://v0.dev/t/wS0dm40d5tt
+-->
+  <div class="grid h-[600px] w-full max-w-sm border rounded-lg overflow-hidden">
+    <div class="flex items-center p-4 border-b"><button
+        class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground rounded-full w-8 h-8 p-0"><svg
+          xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+          <path d="m15 18-6-6 6-6"></path>
+        </svg></button>
+      <div class="ml-4">
+        <h1 class="text-lg font-semibold">Sarah Day</h1>
+        <p class="text-sm font-medium">Online</p>
+      </div><button
+        class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground ml-auto rounded-full w-8 h-8 p-0"><svg
+          xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+          <path d="m22 8-6 4 6 4V8Z"></path>
+          <rect width="14" height="12" x="2" y="6" rx="2" ry="2"></rect>
+        </svg></button><button
+        class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground rounded-full w-8 h-8 p-0"><svg
+          xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+          <path
+            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+          </path>
+        </svg></button>
+    </div>
+    <div class="flex-1 overflow-auto">
+      <div id="message-text" class="grid gap-4 p-4">
+        {% for message in messages %}
+        {% if message.sender == request.user %}
+        <!-- my chat message -->
+        <div class="flex flex-col items-end gap-1">
+          <div class="rounded-lg p-3 bg-gray-100 text-sm inline-block">
+            {{ message.text }}
+          </div>
+          <div class="text-xs text-gray-500">You, {{ message.timestamp|date:"g:i A" }}</div>
+        </div>
+        {% else %}
+        <!-- friend message -->
+        <div class="flex flex-col items-start gap-1">
+          <div class="rounded-lg p-3 bg-gray-100 text-sm inline-block">
+            {{ message.text }}
+          </div>
+          <div class="text-xs text-gray-500">{{ message.sender.username }}, {{ message.timestamp|date:"g:i A" }}</div>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="p-2 border-t">
+      <form class="flex"><input id="text"
+          class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 flex-1"
+          placeholder="Type a message">
+        <button id="send-button"
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+          type="button">Send</button>
+      </form>
+    </div>
+  </div>
+
+
+  <script>
+
+    const chatSocket = new WebSocket(
+      'ws://'
+      + window.location.host
+      + '/ws/chat/'
+      + '{{conversation_id}}'
+      + '/'
+    );
+    console.log(chatSocket);
+    console.log('{{conversation_id}}');
+
+
+
+
+
+
+    chatSocket.onmessage = function (e) {
+      const data = JSON.parse(e.data);
+      console.log(data['event'].receiver);
+
+      displayMessage(data['event'])
+
+
+      // Scroll to the bottom of the chat container
+      document.querySelector('.flex-1.overflow-auto').scrollTop = document.querySelector('.flex-1.overflow-auto').scrollHeight;
+    };
+            
+    function displayMessage(data) {
+      console.log(data.user_id, data.sender);
+
+      // Parse the current user and the sender
+      const currentUser = parseInt(data.user_id);  // User receiving the message
+      const senderId = parseInt(data.sender);      // User sending the message
+
+      const messageText = data.message;
+      const timestamp = data.timestamp;
+      console.log(currentUser === senderId ? "items-end"
+        : "items-start");
+
+
+      // Check whether the message is from the current user or the other user
+      let messageHtml;
+      messageHtml = `
+  <div class="flex flex-col ${currentUser !== senderId ? "items-end" : "items-start"} gap-1">
+    <div class="rounded-lg p-3 bg-gray-100 text-sm inline-block">
+      ${messageText}
+    </div>
+    <div class="text-xs text-gray-500">
+      ${data.sender_username}, ${timestamp}
+    </div>
+  </div>
+`;
+
+
+      // Append the message to the message container
+      document.querySelector('#message-text').innerHTML += messageHtml;
+
+    }
+    document.getElementById('send-button').onclick = function (e) {
+      const message = document.getElementById('text').value
+      chatSocket.send(JSON.stringify({
+        'message': message
+      }))
+    }
+
+    chatSocket.onclose = function (e) {
+      console.error('Chat socket closed unexpectedly');
+    };
+  </script>
+
+
+
+</body>
+
+</html>
